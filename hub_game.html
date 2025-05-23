@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Game Hub - Dark Theme</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron&display=swap');
+
+  /* Reset and base */
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  body, html {
+    height: 100%;
+    width: 100%;
+    background: #121212;
+    font-family: 'Orbitron', sans-serif;
+    color: #eee;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow: hidden;
+    transition: background 0.5s ease, color 0.5s ease;
+  }
+
+  /* Light theme overrides */
+  body.light-theme {
+    background: #fdfdfd;
+    color: #222;
+  }
+  body.light-theme .game-card {
+    background: #eee;
+    border-color: #0077cc;
+    color: #0077cc;
+  }
+  body.light-theme .game-card:hover,
+  body.light-theme .game-card:focus {
+    background: #cce6ff;
+    box-shadow: 0 0 14px #3399ff;
+    color: #00497a;
+  }
+  body.light-theme .game-card:active {
+    background: #0077cc;
+    color: #fdfdfd;
+    box-shadow: 0 0 20px #0077cc;
+  }
+  body.light-theme .footer-note {
+    color: #777;
+  }
+
+  /* Container centered with safe max size */
+  .container {
+    max-width: 350px;
+    max-height: 600px;
+    margin: 0 auto;
+    padding: 16px 8px 48px 8px; /* bottom padding for footer */
+    height: 600px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Header with logo, search, and menu */
+  header {
+    width: 100%;
+    height: 56px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    cursor: default;
+  }
+  .logo-icon {
+    width: 80px;
+    height: 32px;
+    background: linear-gradient(135deg, #0ff, #00aaff);
+    border-radius: 6px;
+    box-shadow: 0 0 10px #0ff;
+    margin-right: 6px;
+    position: relative;
+    font-family: 'Orbitron', monospace, monospace;
+    font-weight: 900;
+    font-size: 20px;
+    letter-spacing: 0.14em;
+    color: #121212;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    text-transform: uppercase;
+  }
+
+  /* Search box */
+  .search-wrapper {
+    flex-grow: 1;
+    position: relative;
+    min-width: 0; /* avoid overflow due to flex-grow */
+  }
+  .search-wrapper input[type="search"] {
+    width: 100%;
+    border: none;
+    border-radius: 20px;
+    padding: 14px 38px 14px 16px;
+    font-size: 1.3rem;
+    font-family: 'Orbitron', sans-serif;
+    background: #222;
+    color: #0ff;
+    box-shadow: inset 0 0 7px #0ff7;
+    transition: background 0.3s ease, color 0.3s ease;
+    outline-offset: 2px;
+  }
+  .search-wrapper input[type="search"]::placeholder {
+    color: #55cccccc;
+    font-size: 1.1rem;
+  }
+  .search-wrapper::after {
+    content: '🔍';
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    transform: translateY(-50%);
+    pointer-events: none;
+    font-size: 1.6rem;
+    color: #0ff;
+  }
+  .search-wrapper input[type="search"]:focus {
+    background: #0a4949;
+    color: #c0ffe0;
+    box-shadow: inset 0 0 12px #0ff;
+  }
+
+  /* Menu Button */
+  .menu-button {
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #0ff;
+    font-size: 1.6rem;
+    user-select: none;
+    padding: 8px;
+    border-radius: 8px;
+    transition: background 0.3s ease;
+    flex-shrink: 0;
+  }
+  .menu-button:hover, .menu-button:focus {
+    background: #0a4949;
+    box-shadow: 0 0 10px #0ff88a;
+    color: #aaffff;
+  }
+
+  /* Side menu panel */
+  .side-menu {
+    position: fixed;
+    top: 0;
+    right: -280px;
+    width: 270px;
+    height: 100vh;
+    background: #0b1a1a;
+    box-shadow: -4px 0 14px #0ff6;
+    padding: 24px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    transition: right 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+    font-family: 'Orbitron', sans-serif;
+    overflow-y: auto;
+  }
+  .side-menu.open {
+    right: 0;
+  }
+  /* Menu close button */
+  .menu-close-button {
+    font-size: 1.5rem;
+    background: transparent;
+    border: none;
+    color: #0ff;
+    padding: 4px 8px;
+    margin-left: auto;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background 0.3s ease;
+  }
+  .menu-close-button:hover, .menu-close-button:focus {
+    background: #0a4949;
+    box-shadow: 0 0 10px #0ff88a;
+    color: #aaffff;
+    outline: none;
+  }
+
+  /* Menu items */
+  .menu-item {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #0ff;
+    cursor: pointer;
+    user-select: none;
+    padding: 12px 18px;
+    background: #122727;
+    border-radius: 12px;
+    box-shadow: 0 0 6px #0ff6 inset;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+    text-align: center;
+  }
+  .menu-item:active {
+    background: #0ff;
+    color: #121212;
+    box-shadow: 0 0 14px #0ff;
+  }
+  .menu-item:hover, .menu-item:focus {
+    background: #0a4949;
+    box-shadow: 0 0 14px #0ff88a;
+    outline: none;
+  }
+
+  /* Game cards grid */
+  .game-list {
+    width: 100%;
+    max-height: calc(600px - 56px - 12px - 48px); /* container height - header height - header margin - footer height */
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding-right: 4px;
+    margin-top: 6px;
+  }
+
+  /* Scrollbar styling */
+  .game-list::-webkit-scrollbar {
+    width: 4px;
+  }
+  .game-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .game-list::-webkit-scrollbar-thumb {
+    background-color: #0ff8;
+    border-radius: 2px;
+  }
+
+  /* Game card */
+  .game-card {
+    background: #1e1e1e;
+    border: 2px solid #0ff;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    padding: 8px 6px;
+  }
+  .game-card:hover, .game-card:focus {
+    background: #0a4949;
+    box-shadow: 0 0 14px #0ff88a;
+    outline: none;
+    transform: translateY(-3px);
+  }
+  .game-card:active {
+    background: #0ff;
+    color: #121212;
+    transform: scale(0.95);
+    box-shadow: 0 0 20px #0ff;
+  }
+  .game-card img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    box-shadow: 0 0 6px #0ffb;
+    transition: filter 0.3s ease;
+  }
+  .game-card:hover img {
+    filter: brightness(1.05);
+  }
+  .game-name {
+    color: #0ff;
+    font-size: 1rem;
+    font-weight: 700;
+    text-align: center;
+    user-select: none;
+  }
+
+  /* Footer note fixed */
+  .footer-note {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 350px;
+    background: rgba(18, 18, 18, 0.9);
+    color: #555;
+    font-size: 0.9rem;
+    text-align: center;
+    padding: 8px 0;
+    user-select: none;
+    box-shadow: inset 0 1px 5px rgba(0,255,255,0.1);
+    backdrop-filter: blur(6px);
+    z-index: 1500;
+  }
+  body.light-theme .footer-note {
+    background: rgba(255, 255, 255, 0.90);
+    color: #777;
+    box-shadow: inset 0 1px 5px rgba(51,153,255,0.2);
+  }
+
+  /* Modal styles */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(18, 18, 18, 0.85);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    padding: 24px;
+  }
+  .modal-overlay.active {
+    display: flex;
+  }
+  .modal-content {
+    background: #222;
+    border-radius: 16px;
+    max-width: 320px;
+    width: 100%;
+    max-height: 500px;
+    padding: 20px;
+    overflow-y: auto;
+    box-shadow: 0 0 20px #0ff7;
+    color: #0ff;
+    box-sizing: border-box;
+  }
+  body.light-theme .modal-content {
+    background: #e5f0ff;
+    color: #00497a;
+    box-shadow: 0 0 20px #3399ff;
+  }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  .modal-header h2 {
+    margin: 0;
+    font-size: 1.6rem;
+  }
+  .modal-close-button {
+    background: transparent;
+    border: none;
+    font-size: 1.8rem;
+    color: inherit;
+    cursor: pointer;
+    user-select: none;
+    padding: 0 8px;
+    line-height: 1;
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
+  }
+  .modal-close-button:hover,
+  .modal-close-button:focus {
+    background: rgba(0,255,255,0.15);
+    outline: none;
+  }
+  /* Team list */
+  .team-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .team-member {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .team-member img {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow: 0 0 8px #0ff;
+  }
+  body.light-theme .team-member img {
+    box-shadow: 0 0 8px #3399ff;
+  }
+  .member-info {
+    flex: 1;
+  }
+  .member-name {
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 4px;
+  }
+  .member-desc {
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: #99f;
+  }
+  body.light-theme .member-desc {
+    color: #337;
+  }
+
+  /* Mobile friendly adjustments */
+  @media (max-width: 400px) {
+    .container {
+      padding: 12px 6px 48px 6px;
+    }
+    .search-wrapper input[type="search"] {
+      font-size: 1.1rem;
+      padding: 12px 34px 12px 12px;
+    }
+    .game-card img {
+      height: 85px;
+    }
+    .game-name {
+      font-size: 0.9rem;
+    }
+    .side-menu {
+      width: 220px;
+      padding: 20px 14px;
+    }
+    .modal-content {
+      max-width: 95vw;
+      max-height: 80vh;
+      padding: 16px;
+    }
+    .team-member img {
+      width: 56px;
+      height: 56px;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="container" role="main">
+    <header>
+      <div class="logo" aria-label="Company logo">
+        <div class="logo-icon" aria-hidden="true">DDAF</div>
+      </div>
+      <div class="search-wrapper" style="flex-grow:1; margin: 0 10px;">
+        <input type="search" id="searchInput" placeholder="Search games..." aria-label="Search games" autocomplete="off" />
+      </div>
+      <button class="menu-button" aria-label="Open menu" id="menuToggleBtn" aria-expanded="false">&#9776;</button>
+    </header>
+
+    <div class="game-list" role="list" tabindex="0" aria-label="List of available games" id="gameList">
+      <div tabindex="0" class="game-card" role="listitem" aria-label="Play Space Invaders game" data-game="game1.html">
+        <img src="images/image1.jpeg" alt="Space Invaders style pixel art" />
+        <div class="game-name">guest the number</div>
+      </div>
+      <div tabindex="0" class="game-card" role="listitem" aria-label="Play Puzzle Quest game" data-game="puzzle_quest.html">
+        <img src="images/puzzle quest.png" alt="Puzzle pieces formation" />
+        <div class="game-name">Puzzle Quest</div>
+      </div>
+      <div tabindex="0" class="game-card" role="listitem" aria-label="Play Cyber Racer game" data-game="game3.html">
+        <img src="images/sudoku.jpeg" alt="Futuristic cyber racer car" />
+        <div class="game-name">sudoku</div>
+      </div>
+      <div tabindex="0" class="game-card" role="listitem" aria-label="Play Block Builder game" data-game="block_builder.html">
+        <img src="images/bb2.png" alt="Building blocks stacked" />
+        <div class="game-name">Block builder</div>
+      </div>
+
+      <div tabindex="0" class="game-card" role="listitem" aria-label="Play Ninja Runner game" data-game="tes.html">
+        <img src="images/bb.png" alt="Ninja character running" />
+        <div class="game-name">block blast</div>
+      </div>
+      <div tabindex="0" class="game-card" role="listitem" aria-label="Play Alien Invasion game" data-game="tb.html">
+        <img src="images/tb.png" alt="Alien invasion concept art" />
+        <div class="game-name">tic tac toe</div>
+      </div>
+      <div tabindex="0" class="game-card" role="listitem" aria-label="Play Sky Defender game" data-game="card.html">
+        <img src="images/card.jpeg" alt="Jet fighter plane" />
+        <div class="game-name">card memory</div>
+      </div>
+      <div tabindex="0" class="game-card" role="listitem" aria-label="Play Magic Matcher game" data-game="tetris.html"> 
+        <img src="images/tetris.jpeg" alt="Magic wand and stars" />
+        <div class="game-name">tetris</div>
+      </div>
+
+      <div tabindex="0" class="game-card" role="listitem" aria-label="Play Zombie Survival game" data-game="snake.html">
+        <img src="images/snake.jpeg" alt="Zombie survival game art" />
+        <div class="game-name">snake</div>
+      </div>
+      <div tabindex="0" class="game-card" role="listitem" aria-label="Play Rocket Jump game" data-game="chess.html">
+        <img src="images/chess.jpg" alt="Rocket launch illustration" />
+        <div class="game-name">chess</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-note">Tap or press a game to start playing!</div>
+
+  <!-- Side Menu -->
+  <nav class="side-menu" id="sideMenu" aria-label="Main menu" role="dialog" aria-modal="true" aria-hidden="true">
+    <button class="menu-close-button" aria-label="Close menu" id="menuCloseBtn">&times;</button>
+    <div tabindex="0" class="menu-item" id="menuAbout">About</div>
+    <div tabindex="0" class="menu-item" id="menuDashboard">Back to Dashboard</div>
+    <div tabindex="0" class="menu-item" id="menuThemeToggle">Change Theme</div>
+  </nav>
+
+  <!-- About Modal -->
+  <div class="modal-overlay" id="aboutModal" role="dialog" aria-modal="true" aria-labelledby="aboutModalTitle" aria-hidden="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="aboutModalTitle">Our Team</h2>
+        <button class="modal-close-button" aria-label="Close About dialog" id="aboutModalCloseBtn">&times;</button>
+      </div>
+      <div class="team-list">
+        <div class="team-member">
+          <img src="images/dafi.jpg" alt="Alice Johnson"/>
+          <div class="member-info">
+            <div class="member-name">Dafi</div>
+            <div class="member-desc">Lead Designer passionate about user experience and pixel art.</div>
+          </div>
+        </div>
+        <div class="team-member">
+          <img src="images/dipta.jpg" alt="Bob Lee"/>
+          <div class="member-info">
+            <div class="member-name">Dipta</div>
+            <div class="member-desc">Game developer specializing in JavaScript and interactive gameplay.</div>
+          </div>
+        </div>
+        <div class="team-member">
+          <img src="images/dilfa.jpg" alt="Carol Smith"/>
+          <div class="member-info">
+            <div class="member-name">Dilfa</div>
+            <div class="member-desc">data manager ensuring smooth coordination and quality data delivery.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // DOM Elements
+  const menuToggleBtn = document.getElementById('menuToggleBtn');
+  const sideMenu = document.getElementById('sideMenu');
+  const menuCloseBtn = document.getElementById('menuCloseBtn');
+  const menuAbout = document.getElementById('menuAbout');
+  const menuDashboard = document.getElementById('menuDashboard');
+  const menuThemeToggle = document.getElementById('menuThemeToggle');
+  const searchInput = document.getElementById('searchInput');
+  const gameList = document.getElementById('gameList');
+  const gameCards = Array.from(gameList.querySelectorAll('.game-card'));
+
+  const aboutModal = document.getElementById('aboutModal');
+  const aboutModalCloseBtn = document.getElementById('aboutModalCloseBtn');
+
+  // Open menu function
+  function openMenu() {
+    sideMenu.classList.add('open');
+    sideMenu.setAttribute('aria-hidden', 'false');
+    menuToggleBtn.setAttribute('aria-expanded', 'true');
+    menuCloseBtn.focus();
+    document.body.style.overflow = 'hidden';
+  }
+  // Close menu function
+  function closeMenu() {
+    sideMenu.classList.remove('open');
+    sideMenu.setAttribute('aria-hidden', 'true');
+    menuToggleBtn.setAttribute('aria-expanded', 'false');
+    menuToggleBtn.focus();
+    document.body.style.overflow = '';
+  }
+
+  menuToggleBtn.addEventListener('click', () => {
+    if(sideMenu.classList.contains('open')){
+      closeMenu();
+    } else {
+      openMenu();
+    }
+  });
+  menuCloseBtn.addEventListener('click', closeMenu);
+
+  document.addEventListener('keydown', event => {
+    if(event.key === 'Escape') {
+      if(sideMenu.classList.contains('open')){
+        closeMenu();
+      }
+      if(aboutModal.classList.contains('active')){
+        closeAboutModal();
+      }
+    }
+  });
+
+  menuAbout.addEventListener('click', () => {
+    openAboutModal();
+    closeMenu();
+  });
+
+  menuDashboard.addEventListener('click', () => {
+    window.location.href = 'dashboard.html';
+  });
+
+  // Theme toggle
+  function setTheme(theme){
+    if(theme === 'light'){
+      document.body.classList.add('light-theme');
+      localStorage.setItem('theme', 'light');
+    } else {
+      document.body.classList.remove('light-theme');
+      localStorage.setItem('theme', 'dark');
+    }
+  }
+  menuThemeToggle.addEventListener('click', () => {
+    if(document.body.classList.contains('light-theme')){
+      setTheme('dark');
+    } else {
+      setTheme('light');
+    }
+    closeMenu();
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('theme');
+    if(savedTheme === 'light'){
+      setTheme('light');
+    } else {
+      setTheme('dark');
+    }
+  });
+
+  searchInput.addEventListener('input', () => {
+    const query = searchInput.value.trim().toLowerCase();
+    gameCards.forEach(card => {
+      const name = card.querySelector('.game-name').textContent.toLowerCase();
+      if(name.includes(query)){
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  });
+
+  gameCards.forEach(card=>{
+    card.addEventListener('click', () => {
+      const gameFile = card.getAttribute('data-game');
+      if(gameFile){
+        window.location.href = gameFile;
+      }
+    });
+    card.addEventListener('keypress', e => {
+      if(e.key === 'Enter' || e.key === ' '){
+        card.click();
+      }
+    });
+  });
+
+  function openAboutModal(){
+    aboutModal.classList.add('active');
+    aboutModal.setAttribute('aria-hidden', 'false');
+    aboutModalCloseBtn.focus();
+    document.body.style.overflow = 'hidden';
+  }
+  function closeAboutModal(){
+    aboutModal.classList.remove('active');
+    aboutModal.setAttribute('aria-hidden', 'true');
+    menuToggleBtn.focus();
+    document.body.style.overflow = '';
+  }
+  aboutModalCloseBtn.addEventListener('click', closeAboutModal);
+  aboutModal.addEventListener('keydown', e => {
+    if(e.key === 'Tab'){
+      const focusable = aboutModal.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if(e.shiftKey){
+        if(document.activeElement === first){
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if(document.activeElement === last){
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    }
+  });
+</script>
+</body>
+</html>
+

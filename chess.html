@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2-Player Mobile Chess</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+            touch-action: manipulation;
+        }
+        
+        h1 {
+            color: #333;
+            margin: 10px 0;
+            font-size: 1.5em;
+        }
+        
+        #chessboard {
+            width: 90vw;
+            height: 90vw;
+            max-width: 400px;
+            max-height: 400px;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(8, 1fr);
+            border: 2px solid #333;
+            margin-bottom: 10px;
+        }
+        
+        .square {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 5vw;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .light {
+            background-color: #f0d9b5;
+        }
+        
+        .dark {
+            background-color: #b58863;
+        }
+        
+        .selected {
+            background-color: rgba(0, 255, 0, 0.5);
+        }
+        
+        .possible-move {
+            background-color: rgba(0, 0, 255, 0.3);
+        }
+        
+        #status {
+            margin: 10px 0;
+            font-weight: bold;
+            font-size: 1.2em;
+            text-align: center;
+        }
+        
+        #controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        button {
+            padding: 8px 15px;
+            font-size: 1em;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+
+        .back-btn {
+    display: inline-block;
+    padding: 8px 15px;
+    font-size: 1em;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    text-align: center;
+}
+.back-btn:hover {
+    background-color: #45a049;
+}
+    </style>
+</head>
+<body>
+    <h1>2-Player Mobile Chess</h1>
+    <div id="status">White's turn</div>
+    <div id="chessboard"></div>
+    <div id="controls">
+    <button id="restart">Restart Game</button>
+    <a href="hub_game.html" id="backToHub" class="back-btn">Back to Hub</a>
+</div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const board = document.getElementById('chessboard');
+            const statusDisplay = document.getElementById('status');
+            const restartButton = document.getElementById('restart');
+            const flipButton = document.getElementById('flip');
+            
+            let selectedPiece = null;
+            let currentPlayer = 'white';
+            let gameState = initializeGame();
+            let boardFlipped = false;
+            
+            // Initialize the game
+            function initializeGame() {
+                const state = Array(8).fill().map(() => Array(8).fill(null));
+                
+                // Set up pawns
+                for (let i = 0; i < 8; i++) {
+                    state[1][i] = { type: 'pawn', color: 'black' };
+                    state[6][i] = { type: 'pawn', color: 'white' };
+                }
+                
+                // Set up rooks
+                state[0][0] = state[0][7] = { type: 'rook', color: 'black' };
+                state[7][0] = state[7][7] = { type: 'rook', color: 'white' };
+                
+                // Set up knights
+                state[0][1] = state[0][6] = { type: 'knight', color: 'black' };
+                state[7][1] = state[7][6] = { type: 'knight', color: 'white' };
+                
+                // Set up bishops
+                state[0][2] = state[0][5] = { type: 'bishop', color: 'black' };
+                state[7][2] = state[7][5] = { type: 'bishop', color: 'white' };
+                
+                // Set up queens
+                state[0][3] = { type: 'queen', color: 'black' };
+                state[7][3] = { type: 'queen', color: 'white' };
+                
+                // Set up kings
+                state[0][4] = { type: 'king', color: 'black' };
+                state[7][4] = { type: 'king', color: 'white' };
+                
+                return state;
+            }
+            
+            // Render the board
+            function renderBoard() {
+                board.innerHTML = '';
+                
+                for (let row = 0; row < 8; row++) {
+                    for (let col = 0; col < 8; col++) {
+                        const square = document.createElement('div');
+                        square.className = `square ${(row + col) % 2 === 0 ? 'light' : 'dark'}`;
+                        square.dataset.row = boardFlipped ? 7 - row : row;
+                        square.dataset.col = boardFlipped ? 7 - col : col;
+                        
+                        const piece = gameState[row][col];
+                        if (piece) {
+                            square.textContent = getPieceSymbol(piece);
+                            square.style.color = piece.color === 'white' ? '#fff' : '#000';
+                        }
+                        
+                        square.addEventListener('click', () => handleSquareClick(row, col));
+                        board.appendChild(square);
+                    }
+                }
+            }
+            
+            // Get Unicode symbol for a piece
+            function getPieceSymbol(piece) {
+                const symbols = {
+                    king: { white: '♔', black: '♚' },
+                    queen: { white: '♕', black: '♛' },
+                    rook: { white: '♖', black: '♜' },
+                    bishop: { white: '♗', black: '♝' },
+                    knight: { white: '♘', black: '♞' },
+                    pawn: { white: '♙', black: '♟' }
+                };
+                return symbols[piece.type][piece.color];
+            }
+            
+            // Handle square clicks
+            function handleSquareClick(row, col) {
+                const piece = gameState[row][col];
+                
+                // If no piece is selected and the clicked square has a piece of the current player's color
+                if (!selectedPiece && piece && piece.color === currentPlayer) {
+                    selectedPiece = { row, col };
+                    highlightSquare(row, col);
+                    showPossibleMoves(row, col);
+                    return;
+                }
+                
+                // If a piece is already selected
+                if (selectedPiece) {
+                    // If clicking on another piece of the same color, select that piece instead
+                    if (piece && piece.color === currentPlayer) {
+                        clearHighlights();
+                        selectedPiece = { row, col };
+                        highlightSquare(row, col);
+                        showPossibleMoves(row, col);
+                        return;
+                    }
+                    
+                    // Check if the move is valid
+                    const fromRow = selectedPiece.row;
+                    const fromCol = selectedPiece.col;
+                    const toRow = row;
+                    const toCol = col;
+                    
+                    if (isValidMove(fromRow, fromCol, toRow, toCol)) {
+                        // Move the piece
+                        gameState[toRow][toCol] = gameState[fromRow][fromCol];
+                        gameState[fromRow][fromCol] = null;
+                        
+                        // Switch players
+                        currentPlayer = currentPlayer === 'white' ? 'black' : 'white';
+                        statusDisplay.textContent = `${currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)}'s turn`;
+                        
+                        // Check for checkmate or stalemate
+                        // (Simplified - a real implementation would need more logic)
+                    }
+                    
+                    // Clear selection
+                    clearHighlights();
+                    selectedPiece = null;
+                    renderBoard();
+                }
+            }
+            
+            // Highlight a square
+            function highlightSquare(row, col) {
+                const squares = board.querySelectorAll('.square');
+                const index = boardFlipped ? (7 - row) * 8 + (7 - col) : row * 8 + col;
+                squares[index].classList.add('selected');
+            }
+            
+            // Show possible moves
+            function showPossibleMoves(row, col) {
+                const piece = gameState[row][col];
+                if (!piece) return;
+                
+                const squares = board.querySelectorAll('.square');
+                
+                // Simplified movement - a real implementation would need proper rules
+                for (let r = 0; r < 8; r++) {
+                    for (let c = 0; c < 8; c++) {
+                        if (isValidMove(row, col, r, c)) {
+                            const index = boardFlipped ? (7 - r) * 8 + (7 - c) : r * 8 + c;
+                            squares[index].classList.add('possible-move');
+                        }
+                    }
+                }
+            }
+            
+            // Clear all highlights
+            function clearHighlights() {
+                const squares = board.querySelectorAll('.square');
+                squares.forEach(sq => {
+                    sq.classList.remove('selected');
+                    sq.classList.remove('possible-move');
+                });
+            }
+            
+            // Check if a move is valid (simplified rules)
+            function isValidMove(fromRow, fromCol, toRow, toCol) {
+                // Can't move to the same square
+                if (fromRow === toRow && fromCol === toCol) return false;
+                
+                const piece = gameState[fromRow][fromCol];
+                const targetPiece = gameState[toRow][toCol];
+                
+                // Can't capture your own piece
+                if (targetPiece && targetPiece.color === piece.color) return false;
+                
+                // Simplified movement rules
+                switch (piece.type) {
+                    case 'pawn':
+                        // Pawns move differently based on color
+                        const direction = piece.color === 'white' ? -1 : 1;
+                        
+                        // Move forward one square
+                        if (fromCol === toCol && !targetPiece) {
+                            if (toRow === fromRow + direction) return true;
+                            
+                            // Initial two-square move
+                            if ((piece.color === 'white' && fromRow === 6) || 
+                                (piece.color === 'black' && fromRow === 1)) {
+                                if (toRow === fromRow + 2 * direction && 
+                                    !gameState[fromRow + direction][fromCol] && 
+                                    !targetPiece) {
+                                    return true;
+                                }
+                            }
+                        }
+                        
+                        // Capture diagonally
+                        if (Math.abs(toCol - fromCol) === 1 && 
+                            toRow === fromRow + direction && 
+                            targetPiece && 
+                            targetPiece.color !== piece.color) {
+                            return true;
+                        }
+                        break;
+                        
+                    case 'rook':
+                        // Rooks move in straight lines
+                        if (fromRow === toRow || fromCol === toCol) {
+                            // Check if path is clear
+                            if (fromRow === toRow) {
+                                const start = Math.min(fromCol, toCol) + 1;
+                                const end = Math.max(fromCol, toCol);
+                                for (let c = start; c < end; c++) {
+                                    if (gameState[fromRow][c]) return false;
+                                }
+                            } else {
+                                const start = Math.min(fromRow, toRow) + 1;
+                                const end = Math.max(fromRow, toRow);
+                                for (let r = start; r < end; r++) {
+                                    if (gameState[r][fromCol]) return false;
+                                }
+                            }
+                            return true;
+                        }
+                        break;
+                        
+                    case 'knight':
+                        // Knights move in L-shapes
+                        const rowDiff = Math.abs(toRow - fromRow);
+                        const colDiff = Math.abs(toCol - fromCol);
+                        return (rowDiff === 2 && colDiff === 1) || (rowDiff === 1 && colDiff === 2);
+                        
+                    case 'bishop':
+                        // Bishops move diagonally
+                        if (Math.abs(toRow - fromRow) === Math.abs(toCol - fromCol)) {
+                            // Check if path is clear
+                            const rowStep = toRow > fromRow ? 1 : -1;
+                            const colStep = toCol > fromCol ? 1 : -1;
+                            let r = fromRow + rowStep;
+                            let c = fromCol + colStep;
+                            while (r !== toRow && c !== toCol) {
+                                if (gameState[r][c]) return false;
+                                r += rowStep;
+                                c += colStep;
+                            }
+                            return true;
+                        }
+                        break;
+                        
+                    case 'queen':
+                        // Queens move like rooks and bishops
+                        if (fromRow === toRow || fromCol === toCol) {
+                            // Rook movement
+                            if (fromRow === toRow) {
+                                const start = Math.min(fromCol, toCol) + 1;
+                                const end = Math.max(fromCol, toCol);
+                                for (let c = start; c < end; c++) {
+                                    if (gameState[fromRow][c]) return false;
+                                }
+                            } else {
+                                const start = Math.min(fromRow, toRow) + 1;
+                                const end = Math.max(fromRow, toRow);
+                                for (let r = start; r < end; r++) {
+                                    if (gameState[r][fromCol]) return false;
+                                }
+                            }
+                            return true;
+                        } else if (Math.abs(toRow - fromRow) === Math.abs(toCol - fromCol)) {
+                            // Bishop movement
+                            const rowStep = toRow > fromRow ? 1 : -1;
+                            const colStep = toCol > fromCol ? 1 : -1;
+                            let r = fromRow + rowStep;
+                            let c = fromCol + colStep;
+                            while (r !== toRow && c !== toCol) {
+                                if (gameState[r][c]) return false;
+                                r += rowStep;
+                                c += colStep;
+                            }
+                            return true;
+                        }
+                        break;
+                        
+                    case 'king':
+                        // Kings move one square in any direction
+                        return Math.abs(toRow - fromRow) <= 1 && Math.abs(toCol - fromCol) <= 1;
+                }
+                
+                return false;
+            }
+            
+            // Restart the game
+            restartButton.addEventListener('click', function() {
+                gameState = initializeGame();
+                currentPlayer = 'white';
+                selectedPiece = null;
+                statusDisplay.textContent = "White's turn";
+                renderBoard();
+            });
+                        
+            // Initial render
+            renderBoard();
+
+        
+
+        });
+    </script>
+</body>
+</html>

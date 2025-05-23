@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<title>Login</title>
+<style>
+  /* Reset */
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  html, body {
+    height: 100%;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #121212;
+    color: #eee;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    min-height: 600px;
+    min-width: 350px;
+  }
+
+  /* Container with relative positioning for circles */
+  .container-wrapper {
+    position: relative;
+    width: 90%;
+    max-width: 350px;
+    min-height: 360px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* The colored circles */
+  .circle {
+    position: absolute;
+    border-radius: 50%;
+    opacity: 0.4;
+    filter: blur(6px);
+    animation: spin 20s linear infinite;
+  }
+  .circle.yellow {
+    width: 220px;
+    height: 220px;
+    border: 3px solid #F8E71C;
+    top: -60px;
+    left: -60px;
+    animation-direction: normal;
+  }
+  .circle.red {
+    width: 180px;
+    height: 180px;
+    border: 3px solid #D0021B;
+    top: 200px;
+    right: -80px;
+    animation-direction: reverse;
+    animation-duration: 25s;
+  }
+  .circle.green {
+    width: 150px;
+    height: 150px;
+    border: 3px solid #7ED321;
+    bottom: -50px;
+    left: 50%;
+    transform: translateX(-50%);
+    animation-direction: normal;
+    animation-duration: 22s;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg);}
+    to { transform: rotate(360deg);}
+  }
+
+  .container {
+    background: #1E1E1E;
+    padding: 2rem 2.5rem;
+    border-radius: 20px;
+    width: 100%;
+    box-shadow: 0 12px 36px rgba(255, 255, 255, 0.15);
+    text-align: center;
+    position: relative;
+    z-index: 10;
+  }
+
+  h1 {
+    margin-bottom: 1.5rem;
+    font-weight: 700;
+    font-size: 1.8rem;
+    text-shadow: 0 0 5px rgba(255,255,255,0.2);
+  }
+  form {
+    display: flex;
+    flex-direction: column;
+  }
+  input[type="text"] {
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    margin-bottom: 1.25rem;
+    outline: none;
+    background-color: #292929;
+    color: #eee;
+    transition: box-shadow 0.3s ease;
+  }
+  input[type="text"]::placeholder {
+    color: #bbb;
+  }
+  input[type="text"]:focus {
+    box-shadow: 0 0 8px #7ED321;
+  }
+  button {
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 10px;
+    background-color: #D0021B;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  button:hover, button:focus {
+    background-color: #A80015;
+  }
+  .welcome {
+    font-size: 1.4rem;
+    margin-top: 1rem;
+    font-weight: 600;
+  }
+
+  @media (max-width: 400px) {
+    .container-wrapper {
+      min-height: 320px;
+    }
+    .container {
+      padding: 1.5rem 2rem;
+    }
+    h1 {
+      font-size: 1.5rem;
+    }
+    button, input[type="text"] {
+      font-size: 1rem;
+      padding: 0.6rem 1rem;
+    }
+    .welcome {
+      font-size: 1.2rem;
+    }
+  }
+
+  /* Accessibility: screen reader only label style */
+  .sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    padding: 0 !important;
+    margin: -1px !important;
+    overflow: hidden !important;
+    clip: rect(0,0,0,0) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+  }
+</style>
+</head>
+<body>
+  <div class="container-wrapper" role="main" aria-label="Login container with decorative circles">
+
+    <div class="circle yellow" aria-hidden="true"></div>
+    <div class="circle red" aria-hidden="true"></div>
+    <div class="circle green" aria-hidden="true"></div>
+
+    <div class="container" aria-label="Login form container">
+      <h1>Login</h1>
+      <form id="loginForm" aria-label="Login form requesting user name">
+        <label for="username" class="sr-only">Enter your name</label>
+        <input type="text" id="username" name="username" placeholder="Enter your name" autocomplete="name" required aria-required="true" />
+        <button type="submit">Login</button>
+      </form>
+      <div id="loginError" class="welcome" aria-live="polite"></div>
+    </div>
+  </div>
+
+<script>
+  const form = document.getElementById('loginForm');
+  const input = document.getElementById('username');
+  const loginError = document.getElementById('loginError');
+
+  form.addEventListener('submit', function(event) {
+    event.preventDefault();
+    const name = input.value.trim();
+    if (name.length === 0) {
+      loginError.textContent = 'Please enter your name.';
+      input.focus();
+      return;
+    }
+    loginError.textContent = '';
+
+    // Save username in localStorage
+    localStorage.setItem('username', name);
+
+    // Navigate to the dashboard page
+    window.location.href = 'dashboard.html';
+  });
+</script>
+</body>
+</html>
+

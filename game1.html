@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guess the Number Game</title>
+    <link rel="stylesheet" href="game1.css">
+    <style>
+      #backButtonContainer {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 1000;
+      }
+      #backButton {
+        display: inline-block;
+        padding: 10px 15px;
+        background-color: #ff0000;
+        color: white;
+        text-decoration: none;
+        font-size: 16px;
+        border-radius: 5px;
+        font-family: Arial, sans-serif;
+        transition: background-color 0.3s ease;
+      }
+      #backButton:hover {
+        background-color: #ff8f8f;
+      }
+    </style>
+</head>
+<body>
+    <div id="backButtonContainer">
+      <a href="hub_game.html" id="backButton">Back</a>
+    </div>
+    <div class="container">
+        <h1>Guess the Number Game</h1>
+        <p>think of a number between 1 and 100.</p>
+        <input type="number" id="guessInput" placeholder="Enter your guess" />
+        <button id="guessButton">Guess</button>
+        <p id="result"></p>
+        <p id="attempts"></p>
+        <div id="hearts"></div>
+        <button id="restartButton" style="display: none;">Play Again</button>
+    </div>
+    <script src="game1.js"></script>
+</body>
+</html>

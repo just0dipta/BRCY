@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>IP Server</title>
+<style>
+  /* Reset and base */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    padding: 0 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #121212;
+    color: #eee;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    max-height: 600px;
+    max-width: 350px;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative; /* Needed for back button absolute positioning */
+  }
+  h1 {
+    font-weight: 700;
+    font-size: 2.2rem;
+    margin-bottom: 1.5rem;
+    letter-spacing: 1.2px;
+    user-select: none;
+  }
+  button.back-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background-color: #e53935; /* red color */
+    border: none;
+    border-radius: 10px;
+    padding: 10px 18px;
+    color: #fff;
+    font-weight: 600;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    user-select: none;
+    box-shadow: 0 2px 8px #a32d2a99;
+    z-index: 1000;
+  }
+  button.back-btn:hover,
+  button.back-btn:focus {
+    background-color: #b71c1c;
+    outline: none;
+  }
+  button.back-btn:active {
+    background-color: #7f1413;
+  }
+  .container {
+    background-color: #1e1e1e;
+    padding: 24px 28px;
+    border-radius: 14px;
+    width: 100%;
+    max-width: 320px;
+    box-shadow: 0 0 10px #00bfa5bb;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    box-sizing: border-box;
+  }
+  label {
+    font-size: 1rem;
+    margin-bottom: 6px;
+    user-select: none;
+  }
+  input.ip-input, input.port-input {
+    font-size: 1.1rem;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+    background-color: #272727;
+    color: #eee;
+    font-family: monospace;
+  }
+  input[readonly] {
+    user-select: text;
+  }
+  .input-group {
+    display: flex;
+    flex-direction: column;
+  }
+  button.copy-btn {
+    background-color: #00bfa5;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 0;
+    color: #121212;
+    font-weight: 700;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    user-select: none;
+    box-shadow: 0 2px 6px #00bfa5bb;
+    margin-top: 8px;
+  }
+  button.copy-btn:hover,
+  button.copy-btn:focus {
+    background-color: #008e76;
+  }
+  button.copy-btn:active {
+    background-color: #00664f;
+  }
+  .copy-confirmation {
+    margin-top: 10px;
+    font-size: 1rem;
+    color: #4caf50;
+    user-select: none;
+    min-height: 1.4em;
+    text-align: center;
+  }
+  @media (max-width: 400px) {
+    h1 {
+      font-size: 1.8rem;
+    }
+    button.back-btn {
+      font-size: 0.9rem;
+      padding: 8px 14px;
+      top: 8px;
+      right: 8px;
+    }
+    .container {
+      padding: 20px 22px;
+    }
+    input.ip-input, input.port-input {
+      font-size: 1rem;
+      padding: 10px 12px;
+    }
+    button.copy-btn {
+      padding: 12px 0;
+      font-size: 1rem;
+    }
+  }
+</style>
+</head>
+<body>
+  <button class="back-btn" id="backBtn" aria-label="Back to Dashboard">&larr; Back</button>
+  <h1>IP Server</h1>
+  <div class="container" role="region" aria-label="IP and Port display with copy button">
+    <div class="input-group">
+      <label for="ipInput">IP server</label>
+      <input type="text" id="ipInput" class="ip-input" value="brcy.aternos.me" readonly aria-readonly="true" />
+    </div>
+    <div class="input-group">
+      <label for="portInput">Port(mobile)</label>
+      <input type="text" id="portInput" class="port-input" value="27657" readonly aria-readonly="true" />
+    </div>
+    <button class="copy-btn" id="copyBtn" aria-label="Copy IP and Port to clipboard">Copy</button>
+    <div class="copy-confirmation" id="copyConfirmation" aria-live="polite" aria-atomic="true"></div>
+  </div>
+
+<script>
+  const copyBtn = document.getElementById('copyBtn');
+  const ipInput = document.getElementById('ipInput');
+  const portInput = document.getElementById('portInput');
+  const copyConfirmation = document.getElementById('copyConfirmation');
+  const backBtn = document.getElementById('backBtn');
+
+  copyBtn.addEventListener('click', () => {
+    const ip = ipInput.value.trim();
+    const port = portInput.value.trim();
+    const combined = ip && port ? ip + ':' + port : ip || port;
+
+    if (!combined) {
+      copyConfirmation.textContent = 'Nothing to copy.';
+      return;
+    }
+
+    const tempTextarea = document.createElement('textarea');
+    tempTextarea.value = combined;
+    document.body.appendChild(tempTextarea);
+    tempTextarea.select();
+    tempTextarea.setSelectionRange(0, 99999);
+
+    let successful = false;
+    try {
+      successful = document.execCommand('copy');
+    } catch {
+      successful = false;
+    }
+    document.body.removeChild(tempTextarea);
+
+    if(successful) {
+      copyConfirmation.textContent = 'Copied "' + combined + '" to clipboard!';
+    } else {
+      copyConfirmation.textContent = 'Copy failed. Please select and copy manually.';
+    }
+
+    setTimeout(() => {
+      copyConfirmation.textContent = '';
+    }, 2500);
+  });
+
+  backBtn.addEventListener('click', () => {
+    window.location.href = 'dashboard.html';
+  });
+
+  ipInput.addEventListener('touchstart', () => ipInput.select());
+  portInput.addEventListener('touchstart', () => portInput.select());
+</script>
+</body>
+</html>
